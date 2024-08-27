@@ -1,9 +1,5 @@
-apply plugin: 'maven'
 apply plugin: 'kotlin'
-apply plugin: 'maven-publish'
 apply plugin: 'java'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -12,8 +8,6 @@ dependencies {
     implementation 'com.squareup:javapoet:1.12.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     testImplementation 'junit:junit:4.13'
-    testImplementation 'io.realm:realm-android-library:10.1.1'
-    testImplementation 'io.realm:realm-annotations:10.1.1'
 }
 
 task javadocJar(type: Jar, dependsOn: 'javadoc') {
@@ -23,84 +17,6 @@ task javadocJar(type: Jar, dependsOn: 'javadoc') {
 task sourcesJar(type: Jar, dependsOn: 'classes') {
     from sourceSets.main.allSource
     classifier = 'sources'
-}
-
-publishing {
-    publications {
-        library(MavenPublication) {
-            groupId 'dk.ilios'
-            artifactId 'realmfieldnameshelper'
-            version version
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'Realm Field Names Helper')
-                root.appendNode('description', 'Provides type safe Realm queries.')
-                root.appendNode('url', 'https://github.com/cmelchior/realmfieldnameshelper')
-
-                def issues = root.appendNode('issueManagement')
-                issues.appendNode('system', 'github')
-                issues.appendNode('url', 'https://github.com/cmelchior/realmfieldnameshelper/issues')
-
-                def scm = root.appendNode('scm')
-                scm.appendNode('url', 'scm:https://github.com/cmelchior/realmfieldnameshelper')
-                scm.appendNode('connection', 'scm:git@github.com:cmelchior/realmfieldnameshelper.git')
-                scm.appendNode('developerConnection', 'scm:git@github.com:cmelchior/realmfieldnameshelper.git')
-
-                def license = root.appendNode('licenses').appendNode('license')
-                license.appendNode('name', 'The Apache Software License, Version 2.0')
-                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-                license.appendNode('distribution', 'repo')
-            }
-        }
-    }
-}
-
-// SNAPSHOT configuration
-artifactory {
-    contextUrl = 'https://oss.jfrog.org'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('privateBintrayUser') ? privateBintrayUser : System.getenv('PRIVATE_BINTRAY_USER')
-            password = project.hasProperty('privateBintrayKey') ? privateBintrayKey : System.getenv('PRIVATE_BINTRAY_KEY')
-            maven = true
-        }
-        defaults {
-            publications('library')
-            publishPom = true
-            publishIvy = false
-        }
-    }
-}
-
-// Release configuration
-bintray {
-    // user and key come from the gradle.properties file in ~/.gradle
-    user = project.hasProperty('privateBintrayUser') ? privateBintrayUser : System.getenv('PRIVATE_BINTRAY_USER')
-    key = project.hasProperty('privateBintrayKey') ? privateBintrayKey : System.getenv('PRIVATE_BINTRAY_KEY')
-    publications = ['library']
-    publish = false
-    dryRun = false
-    pkg {
-        repo = 'maven'
-        name = 'realmfieldnameshelper'
-        desc = 'Provides type safe Realm queries'
-        websiteUrl = 'https://github.com/cmelchior/realmfieldnameshelper'
-        issueTrackerUrl = 'https://github.com/cmelchior/realmfieldnameshelper/issues'
-        vcsUrl = 'https://github.com/cmelchior/realmfieldnameshelper.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
-    }
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }
 
 task checkstyle(type: Checkstyle) {
@@ -115,15 +31,6 @@ task checkstyle(type: Checkstyle) {
 
     // empty classpath
     classpath = files()
-}
-
-// Configure ch.netzwerg.release plugin
-// See https://github.com/netzwerg/gradle-release-plugin
-release {
-    dependsOn build
-    push = false
-    versionSuffix = '-SNAPSHOT'
-    tagPrefix = 'v'
 }
 
 sourceSets {
